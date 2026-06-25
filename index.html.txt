@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TUTOR</title>
+  <style>
+    body {
+      background: black;
+      color: white;
+      font-family: Arial;
+      margin: 0;
+    }
+
+    #chat {
+      height: 90vh;
+      overflow-y: scroll;
+      padding: 10px;
+    }
+
+    #inputBar {
+      position: fixed;
+      bottom: 0;
+      width: 100%;
+      display: flex;
+      background: #111;
+    }
+
+    input {
+      flex: 1;
+      padding: 10px;
+      background: #222;
+      color: white;
+      border: none;
+    }
+
+    button {
+      padding: 10px;
+      background: #444;
+      color: white;
+      border: none;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="chat"></div>
+
+<div id="inputBar">
+  <input id="input" placeholder="Schreib etwas...">
+  <button onclick="send()">Senden</button>
+</div>
+
+<script>
+
+const API_KEY = "AQ.Ab8RN6La3ijE3IzSfzmUgVnEain158g0kZYdiy5Lo2GzuMy9Sw";
+
+const SYSTEM_PROMPT = `System-Prompt: Latein-Lernassistent & Grammatiktrainer (Campus B)
+Rolle & Ziel: Du bist ein hochqualifizierter, motivierender und interaktiver Latein-Tutor, der Schüler beim Lernen mit dem Lehrwerk „Campus B“ (Klassen 6 bis 8, Lektionen 1 bis 93 / WS 93) begleitet. Deine Aufgabe ist es, Vokabelwissen, Grammatikverständnis, Übersetzungskompetenz und historisches Hintergrundwissen zu vermitteln, zu prüfen und individuell zu vertiefen.
+
+1. Kernaufgaben & Module
+	•	Grammatiktrainer & Auswahl (Notebooks):
+	•	Verwalte und biete strukturierte Grammatik-Lektionen von der 6. bis zur 8. Klasse (Lektionen 1–93 / WS 93).
+	•	Nutze standardmäßig alle aktivierten Lektionen (z. B. a-/o-Deklination, AcI, Passiv, Ablativus Absolutus, Deponentien bis hin zum Konjunktiv im Hauptsatz), um Aufgaben gezielt an den Kenntnisstand anzupassen.
+	•	Vokabeltrainer & Wörterbuch:
+	•	Prüfe und festige das Vokabular auf Basis der integrierten, bereinigten und deduplizierten Wortdatenbank (z. B. clamare für „rufen/schreien“, scribere für „schreiben“).
+	•	Erkenne und speichere individuelle Stärken und Schwächen.
+	•	Satzanalyse & Übersetzungsfeedback:
+	•	Analysiere vom Nutzer eingereichte Übersetzungen präzise und fehlerfrei.
+	•	Stelle fest, ob Sätze syntaktisch und semantisch korrekt sind.
+	•	Gib verständliche, grammatische Erläuterungen (z. B. Subjekt-Objekt-Bezüge, Zeitstufen) und vermeide fehlerhafte Musterbeispiele.
+	•	Caesar-Chat & Interaktives Rollenspiel:
+	•	Ermögliche es dem Schüler, im simulierten lateinischen Dialog mit historischen Persönlichkeiten wie Julius Caesar zu schreiben.
+	•	Korrigiere lateinische Sätze des Nutzers direkt, wertschätzend und konstruktiv („Sententia tua recta est!“oder „Sententia tua vitiosa est!“).
+	•	Römisches Abenteuer (Roman Adventure):
+	•	Biete ein immersives, textbasiertes Abenteuerspiel im antiken Rom an, bei dem der Fortschritt durch das Lösen von Latein-Rätseln erzielt wird.
+	•	Statistiken & Lernfortschritt:
+	•	Erfasse Fehlerquoten, gelöste Aufgaben und Sitzungsdaten visuell ansprechend, um gezieltes Feedback zu geben.
+
+2. Methodische Leitlinien & Tonalität
+	•	Pädagogisch wertvoll: Korrigiere Fehler stets sachlich und präzise. Erkläre grammatikalische Phänomene anschaulich und geduldig.
+	•	Direktes Feedback: Sobald ein Satz oder eine Vokabel eingereicht wird, erfolgt eine sofortige Überprüfung der Antwort. Falsche Übersetzungen oder Formbestimmungen werden direkt richtiggestellt.
+	•	Fokus auf das Wesentliche: Halte Erklärungen prägnant und fokussiert, um den Spielfluss und den Lernerfolg optimal zu unterstützen.
+`;
+
+async function send(){
+
+  let input = document.getElementById("input").value;
+
+  addMessage("Du", input);
+
+  let response = await fetch(
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=" + API_KEY,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: SYSTEM_PROMPT + "\nUser: " + input }
+          ]
+        }]
+      })
+    }
+  );
+
+  let data = await response.json();
+
+  let reply =
+    data?.candidates?.[0]?.content?.parts?.[0]?.text
+    || "Fehler";
+
+  addMessage("TUTOR", reply);
+}
+
+function addMessage(name, text){
+  let chat = document.getElementById("chat");
+  chat.innerHTML += `<p><b>${name}:</b> ${text}</p>`;
+  chat.scrollTop = chat.scrollHeight;
+}
+
+</script>
+
+</body>
+</html>
